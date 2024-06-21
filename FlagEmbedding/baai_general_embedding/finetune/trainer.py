@@ -25,18 +25,18 @@ class BiTrainer(Trainer):
             raise NotImplementedError(
                 f'MODEL {self.model.__class__.__name__} '
                 f'does not support save interface')
-        else:
-            if self.use_lora:
-                self.model.model = self.model.model.merge_and_unload()
+        # else:
+            # if self.use_lora:
+            #     self.model.model = self.model.model.merge_and_unload()
                 
-            self.model.save(output_dir)
+        self.model.save(output_dir)
         if self.tokenizer is not None and self.is_world_process_zero():
             self.tokenizer.save_pretrained(output_dir)
 
         torch.save(self.args, os.path.join(output_dir, "training_args.bin"))
 
         # save the checkpoint for sentence-transformers library
-        if self.is_world_process_zero():
+        if self.is_world_process_zero() & ~self.use_lora:
             save_ckpt_for_sentence_transformers(output_dir,
                                                 pooling_mode=self.args.sentence_pooling_method,
                                                 normlized=self.args.normlized)
