@@ -8,6 +8,7 @@ import torch.distributed as dist
 from torch import nn, Tensor
 import torch.nn.functional as F
 from transformers import AutoModel, AutoTokenizer
+from peft import AutoPeftModelForFeatureExtraction
 from transformers.file_utils import ModelOutput
 from huggingface_hub import snapshot_download
 
@@ -35,8 +36,11 @@ class BGEM3Model(nn.Module):
                  use_self_distill: bool = False,
                  colbert_dim: int = -1,
                  self_distill_start_step: int = -1,
+                 use_lora : bool = False
                  ):
         super().__init__()
+        self.use_lora = use_lora
+        print(self.use_lora)
         self.load_model(model_name, colbert_dim=colbert_dim)
         self.vocab_size = self.model.config.vocab_size
         self.cross_entropy = nn.CrossEntropyLoss(reduction='mean')
@@ -73,7 +77,13 @@ class BGEM3Model(nn.Module):
                                            cache_dir=cache_folder,
                                            ignore_patterns=['flax_model.msgpack', 'rust_model.ot', 'tf_model.h5'])
 
-        self.model = AutoModel.from_pretrained(model_name)
+
+        if self.use_lora:
+            print("Using Lora")
+            self.model = AutoPeftModelForFeatureExtraction.from_pretrained(model_name)
+        else:
+            self.model = AutoModel.from_pretrained(model_name)
+            
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
 
         self.colbert_linear = torch.nn.Linear(in_features=self.model.config.hidden_size,

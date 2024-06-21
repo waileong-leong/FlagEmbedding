@@ -30,13 +30,15 @@ class BGEM3FlagModel:
             pooling_method: str = 'cls',
             normalize_embeddings: bool = True,
             use_fp16: bool = True,
-            device: str = None
+            device: str = None,
+            use_lora: bool = False
     ) -> None:
 
         self.model = BGEM3ForInference(
             model_name=model_name_or_path,
             normlized=normalize_embeddings,
             sentence_pooling_method=pooling_method,
+            use_lora = use_lora
         )
 
         self.tokenizer = self.model.tokenizer

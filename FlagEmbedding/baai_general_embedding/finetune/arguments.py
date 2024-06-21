@@ -14,6 +14,9 @@ class ModelArguments:
     model_name_or_path: str = field(
         metadata={"help": "Path to pretrained model or model identifier from huggingface.co/models"}
     )
+    peft_model_path: str = field(
+        default=''
+    )
     config_name: Optional[str] = field(
         default=None, metadata={"help": "Pretrained config name or path if not the same as model_name"}
     )
@@ -23,6 +26,34 @@ class ModelArguments:
     cache_dir: Optional[str] = field(
         default=None, metadata={"help": "Where do you want to store the pretrained models downloaded from s3"}
     )
+    use_lora: bool = field(
+        default=False,
+        metadata={"help": "If passed, will use LORA (low-rank parameter-efficient training) to train the model."}
+    )
+    lora_rank: int = field(
+        default=64,
+        metadata={"help": "The rank of lora."}
+    )
+    lora_alpha: float = field(
+        default=16,
+        metadata={"help": "The alpha parameter of lora."}
+    )
+    lora_dropout: float = field(
+        default=0.1,
+        metadata={"help": "The dropout rate of lora modules."}
+    )
+    save_merged_lora_model: bool = field(
+        default=False,
+        metadata={"help": "If passed, will merge the lora modules and save the entire model."}
+    )
+    from_peft: str = field(
+        default=None
+    )
+    lora_extra_parameters: str = field(
+        default=None
+    )
+
+
 
 
 

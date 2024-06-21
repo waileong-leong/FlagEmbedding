@@ -14,6 +14,7 @@ def save_ckpt_for_sentence_transformers(ckpt_dir, pooling_mode: str = 'cls', nor
 
 
 class BiTrainer(Trainer):
+    use_lora: bool = False
     def _save(self, output_dir: Optional[str] = None, state_dict=None):
         output_dir = output_dir if output_dir is not None else self.args.output_dir
         os.makedirs(output_dir, exist_ok=True)
@@ -25,6 +26,9 @@ class BiTrainer(Trainer):
                 f'MODEL {self.model.__class__.__name__} '
                 f'does not support save interface')
         else:
+            if self.use_lora:
+                self.model.model = self.model.model.merge_and_unload()
+                
             self.model.save(output_dir)
         if self.tokenizer is not None and self.is_world_process_zero():
             self.tokenizer.save_pretrained(output_dir)

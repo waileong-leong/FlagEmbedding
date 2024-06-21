@@ -5,7 +5,8 @@ from typing import Dict, Optional
 import torch
 import torch.distributed as dist
 from torch import nn, Tensor
-from transformers import AutoModel
+from transformers import AutoModel, AutoConfig
+from peft import get_peft_model, LoraConfig, TaskType
 from transformers.file_utils import ModelOutput
 
 logger = logging.getLogger(__name__)
@@ -28,10 +29,28 @@ class BiEncoderModel(nn.Module):
                  sentence_pooling_method: str = 'cls',
                  negatives_cross_device: bool = False,
                  temperature: float = 1.0,
-                 use_inbatch_neg: bool = True
+                 use_inbatch_neg: bool = True,
+                 lora_r: int = 8,
+                 lora_alpha: int = 32,
+                 lora_dropout: float = 0.1,
+                 use_lora: bool = False
                  ):
         super().__init__()
-        self.model = AutoModel.from_pretrained(model_name)
+        config = AutoConfig.from_pretrained(model_name)
+        self.model = AutoModel.from_pretrained(model_name, config=config)
+        
+        if use_lora:
+            print("Using Lora")
+            peft_config = LoraConfig(
+            r=lora_r,
+            lora_alpha=lora_alpha,
+            bias="none",
+            lora_dropout=lora_dropout,
+            task_type=TaskType.FEATURE_EXTRACTION,
+            target_modules=["key", "query", "value"])
+            self.model = get_peft_model(self.model, peft_config)
+            self.model.print_trainable_parameters()
+
         self.cross_entropy = nn.CrossEntropyLoss(reduction='mean')
 
         self.normlized = normlized

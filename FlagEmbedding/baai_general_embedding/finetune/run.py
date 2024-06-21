@@ -74,7 +74,10 @@ def main():
                            negatives_cross_device=training_args.negatives_cross_device,
                            temperature=training_args.temperature,
                            use_inbatch_neg=training_args.use_inbatch_neg,
-                           )
+                           lora_r=model_args.lora_rank,
+                           lora_alpha=model_args.lora_alpha,
+                           lora_dropout=model_args.lora_dropout,
+                           use_lora=model_args.use_lora)
 
     if training_args.fix_position_embedding:
         for k, v in model.named_parameters():
@@ -95,6 +98,7 @@ def main():
         ),
         tokenizer=tokenizer
     )
+    trainer.use_lora = model_args.use_lora
 
     Path(training_args.output_dir).mkdir(parents=True, exist_ok=True)
 
